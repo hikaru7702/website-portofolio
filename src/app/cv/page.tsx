@@ -16,12 +16,13 @@ import { experiences } from "@/lib/data/experiences";
 import { profile } from "@/lib/data/profile";
 import { projects } from "@/lib/data/projects";
 import { coreSkills, toolSkills } from "@/lib/data/skills";
+import { absoluteUrl } from "@/lib/site";
 import { formatRange } from "@/lib/utils/date";
 
 export const metadata: Metadata = {
   title: "CV",
   description: `Curriculum Vitae ${profile.name} — ${profile.role}.`,
-  alternates: { canonical: "/cv" },
+  alternates: { canonical: absoluteUrl("/cv/") },
 };
 
 export default function CvPage() {

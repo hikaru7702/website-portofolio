@@ -40,8 +40,6 @@ export const contactSchema = z.object({
   consent: z.boolean().refine((value) => value === true, {
     message: "Anda harus menyetujui kebijakan privasi",
   }),
-  honeypot: z.string().max(200).optional(),
-  startedAt: z.number().int().nonnegative().optional(),
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;

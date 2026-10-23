@@ -26,10 +26,10 @@ Portofolio interaktif single-page yang dibangun dengan **Next.js 15 App Router**
   - elemen `<time>` semantik,
   - animasi reveal yang menghormati `prefers-reduced-motion`.
 - **Form kontak**:
-  - React Hook Form + Zod (validasi klien dan server),
-  - honeypot, rate limit 5 pesan/jam, deteksi pengisian terlalu cepat,
-  - status sukses dengan nomor tiket dan fallback email,
-  - integrasi email Resend opsional.
+  - React Hook Form + Zod untuk validasi,
+  - membuka draft email berisi nama, email, subjek, anggaran, dan pesan,
+  - fallback tautan email langsung,
+  - cocok untuk hosting statis seperti GitHub Pages.
 - **PWA**:
   - manifest lengkap + ikon 192/512/maskable/apple,
   - service worker dengan strategi cache per jenis aset,
@@ -93,8 +93,6 @@ src/
     works/[slug]/page.tsx     # detail proyek (SSG)
     cv/page.tsx               # CV siap cetak
     offline/page.tsx          # fallback offline
-    api/contact/route.ts      # BFF form kontak
-    api/cv/route.ts           # redirect ke /cv
     manifest.ts, robots.ts, sitemap.ts, icon.svg, favicon.ico
   components/
     layout/                   # Navigation, Footer
@@ -106,11 +104,13 @@ src/
     ui/                       # Button, Badge, SectionHeading, SocialLinks
   lib/
     data/                     # profile, projects, skills, experiences
-    schemas/contact.ts        # skema Zod bersama
+    schemas/contact.ts        # skema Zod form
+    site.ts                   # site URL, base path, helper aset
     utils/                    # cn, date
     events.ts                 # cross-filter event
 public/
   sw.js                       # service worker
+  .nojekyll                   # agar aset _next disajikan GitHub Pages
   icons/                      # ikon PWA
   images/projects/            # cover proyek (aset lokal)
   og-image.png
@@ -145,29 +145,31 @@ Semua konten utama dipisahkan dari UI:
 
 ## Environment variables
 
-Salin `.env.example` menjadi `.env.local`:
+Salin `.env.example` menjadi `.env.local` untuk pengembangan lokal:
 
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-RESEND_API_KEY=
-CONTACT_TO_EMAIL=hello@example.com
-CONTACT_FROM_EMAIL=Portfolio <onboarding@resend.dev>
 ```
 
-- `NEXT_PUBLIC_SITE_URL` dipakai untuk metadata, sitemap, dan robots.
-- Email notifikasi bersifat opsional. Tanpa `RESEND_API_KEY`, pesan tetap
-  divalidasi dan dicatat di log server, lalu form mengembalikan nomor tiket.
+Untuk build GitHub Pages:
+
+```env
+NEXT_PUBLIC_SITE_URL=https://hikaru7702.github.io/website-portofolio
+NEXT_PUBLIC_BASE_PATH=/website-portofolio
+```
+
+- `NEXT_PUBLIC_SITE_URL` dipakai untuk metadata, sitemap, robots, dan JSON-LD.
+- `NEXT_PUBLIC_BASE_PATH` harus sama dengan nama repo saat deploy ke project
+  pages (`/<nama-repo>`).
 
 ## Catatan keamanan
 
-- Validasi Zod dilakukan di klien **dan** server.
-- Rate limit in-memory (5 pesan/jam/IP) cocok untuk single instance. Untuk
-  deployment multi-instance, gunakan Redis/Upstash.
-- IP di-hash sebelum dicatat.
-- Honeypot dan minimum fill time membantu mengurangi spam.
-- Tambahkan Turnstile/reCAPTCHA jika form mulai menerima spam dalam jumlah besar.
-- Header keamanan dasar sudah diatur di `next.config.js` (nosniff, frame,
-  referrer, permissions policy).
+- Form kontak tidak mengirim data ke server; browser membuka aplikasi email
+  pengguna melalui `mailto:`.
+- Tidak ada API backend, rate limit, atau penyimpanan pesan di situs statis.
+- Header keamanan `next.config.js` hanya berlaku saat aplikasi dijalankan dengan
+  server Next.js; GitHub Pages memakai header dari GitHub.
+- Jangan commit token deployment ke repository.
 
 ## Verifikasi
 
@@ -179,12 +181,31 @@ npm run build
 
 ## Deployment
 
-Proyek kompatibel dengan Vercel/Netlify. Langkah singkat:
+### GitHub Pages
 
-1. Set `NEXT_PUBLIC_SITE_URL` ke domain produksi.
-2. (Opsional) set kredensial Resend.
-3. Deploy, lalu uji manifest, service worker, dan form kontak.
-4. Pastikan `sitemap.xml` dan `robots.txt` dapat diakses.
+Situs production: **https://hikaru7702.github.io/website-portofolio/**
+
+Build statis:
+
+```powershell
+$env:GITHUB_PAGES="true"
+$env:NEXT_PUBLIC_BASE_PATH="/website-portofolio"
+$env:NEXT_PUBLIC_SITE_URL="https://hikaru7702.github.io/website-portofolio"
+npm run build
+```
+
+Hasil build ada di `out/`. Folder tersebut di-push ke branch `gh-pages`, lalu
+GitHub Pages disetel ke branch tersebut. File `public/.nojekyll` memastikan aset
+`_next` tidak diabaikan Jekyll.
+
+Untuk deploy ulang, ulangi build dengan environment di atas lalu push isi `out/`
+ke branch `gh-pages`.
+
+### Server Next.js
+
+`npm run build && npm start` tetap bisa dipakai untuk hosting Node/container.
+Form kontak tetap memakai `mailto:` karena route API sudah dihapus agar build
+statis kompatibel dengan GitHub Pages.
 
 ## Scripts
 

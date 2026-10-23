@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ArrowUpRight, Star } from "lucide-react";
 import type { Project } from "@/lib/data/projects";
 import { projectCategoryMap } from "@/lib/data/projects";
+import { publicPath } from "@/lib/site";
 import { cn } from "@/lib/utils/cn";
 
 export function ProjectCard({
@@ -21,7 +22,7 @@ export function ProjectCard({
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-soft">
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         <Image
-          src={project.cover}
+          src={publicPath(project.cover)}
           alt={project.coverAlt}
           fill
           priority={priority}

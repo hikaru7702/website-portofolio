@@ -1,15 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Loader2,
-  Mail,
-  Send,
-} from "lucide-react";
+import { CheckCircle2, Mail, Send } from "lucide-react";
 import { buttonStyles } from "@/components/ui/Button";
 import {
   contactSchema,
@@ -20,7 +14,7 @@ import {
 import { profile } from "@/lib/data/profile";
 import { cn } from "@/lib/utils/cn";
 
-type SubmitStatus = "idle" | "submitting" | "success" | "error";
+type SubmitStatus = "idle" | "success";
 
 const inputClassName =
   "w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-60";
@@ -32,72 +26,47 @@ const defaultValues: ContactFormValues = {
   budget: "",
   message: "",
   consent: false,
-  honeypot: "",
 };
 
 export function ContactForm() {
   const [status, setStatus] = useState<SubmitStatus>("idle");
-  const [serverError, setServerError] = useState("");
-  const [ticketId, setTicketId] = useState("");
-  const [startedAt, setStartedAt] = useState<number | undefined>(undefined);
+  const [emailHref, setEmailHref] = useState(`mailto:${profile.email}`);
 
   const {
     register,
     handleSubmit,
     reset,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues,
   });
 
-  useEffect(() => {
-    setStartedAt(Date.now());
-  }, []);
-
   const messageLength = watch("message")?.length ?? 0;
   const consentValue = watch("consent");
-  const isBusy = isSubmitting || status === "submitting";
 
-  const onSubmit = async (values: ContactFormValues) => {
-    setStatus("submitting");
-    setServerError("");
+  const onSubmit = (values: ContactFormValues) => {
+    const subject = encodeURIComponent(
+      `[Portfolio] ${contactSubjectLabels[values.subject]} — ${values.name}`
+    );
+    const body = encodeURIComponent(
+      [
+        `Nama: ${values.name}`,
+        `Email: ${values.email}`,
+        values.budget ? `Anggaran: ${values.budget}` : null,
+        "",
+        values.message,
+      ]
+        .filter((line) => line !== null)
+        .join("\n")
+    );
+    const href = `mailto:${profile.email}?subject=${subject}&body=${body}`;
 
-    try {
-      if (typeof navigator !== "undefined" && !navigator.onLine) {
-        throw new Error(
-          "Anda sedang offline. Sambungkan internet lalu coba kirim lagi."
-        );
-      }
-
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, startedAt }),
-      });
-
-      const payload = (await response.json().catch(() => ({}))) as {
-        message?: string;
-        ticketId?: string;
-      };
-
-      if (!response.ok) {
-        throw new Error(payload.message || "Pesan gagal dikirim. Coba lagi.");
-      }
-
-      setTicketId(payload.ticketId ?? "");
-      setStatus("success");
-      reset(defaultValues);
-      setStartedAt(Date.now());
-    } catch (error) {
-      setStatus("error");
-      setServerError(
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan. Silakan coba lagi."
-      );
-    }
+    setEmailHref(href);
+    setStatus("success");
+    window.location.href = href;
+    reset(defaultValues);
   };
 
   if (status === "success") {
@@ -110,34 +79,32 @@ export function ContactForm() {
         <span className="grid h-16 w-16 place-items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300">
           <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
         </span>
-        <h3 className="mt-5 font-display text-2xl font-bold">Pesan terkirim!</h3>
+        <h3 className="mt-5 font-display text-2xl font-bold">
+          Draft email dibuka
+        </h3>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-          Terima kasih sudah menghubungi saya. Saya akan menanggapi secepatnya,
-          biasanya dalam 24 jam.
-        </p>
-        {ticketId ? (
-          <p className="mt-4 rounded-full border border-border bg-card px-3 py-1.5 font-mono text-xs text-muted-foreground">
-            Tiket: <span className="font-semibold text-foreground">{ticketId}</span>
-          </p>
-        ) : null}
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={() => {
-              setStatus("idle");
-              setTicketId("");
-            }}
-            className={buttonStyles({ variant: "outline" })}
-          >
-            Kirim pesan lain
-          </button>
+          Aplikasi email kamu seharusnya sudah terbuka dengan isi pesan. Jika
+          tidak, buka draft lagi atau kirim langsung ke{" "}
           <a
             href={`mailto:${profile.email}`}
-            className={buttonStyles({ variant: "ghost" })}
+            className="font-medium text-accent hover:underline"
           >
-            <Mail className="h-4 w-4" aria-hidden="true" />
-            Email langsung
+            {profile.email}
           </a>
+          .
+        </p>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <a href={emailHref} className={buttonStyles()}>
+            <Mail className="h-4 w-4" aria-hidden="true" />
+            Buka email lagi
+          </a>
+          <button
+            type="button"
+            onClick={() => setStatus("idle")}
+            className={buttonStyles({ variant: "outline" })}
+          >
+            Tulis pesan lain
+          </button>
         </div>
       </div>
     );
@@ -263,17 +230,6 @@ export function ContactForm() {
         )}
       </div>
 
-      <div className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
-        <label htmlFor="contact-website">Jangan diisi</label>
-        <input
-          id="contact-website"
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-          {...register("honeypot")}
-        />
-      </div>
-
       <div>
         <label htmlFor="contact-consent" className="flex cursor-pointer items-start gap-2.5">
           <input
@@ -296,37 +252,18 @@ export function ContactForm() {
         ) : null}
       </div>
 
-      {status === "error" && serverError ? (
-        <div
-          role="alert"
-          className="flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-600 dark:text-red-300"
-        >
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>{serverError}</span>
-        </div>
-      ) : null}
-
       <button
         type="submit"
-        disabled={isBusy || !consentValue}
+        disabled={!consentValue}
         className={buttonStyles({ className: "w-full", size: "lg" })}
       >
-        {isBusy ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-            Mengirim pesan...
-          </>
-        ) : (
-          <>
-            <Send className="h-4 w-4" aria-hidden="true" />
-            Kirim pesan
-          </>
-        )}
+        <Send className="h-4 w-4" aria-hidden="true" />
+        Kirim via email
       </button>
 
       <p className="text-center text-[11px] text-muted-foreground">
-        Data Anda tidak dibagikan ke pihak ketiga. Anda juga bisa mengirim email
-        langsung ke{" "}
+        Form ini membuka aplikasi email kamu; tidak ada data yang dikirim ke
+        server. Kamu juga bisa mengirim langsung ke{" "}
         <a href={`mailto:${profile.email}`} className="font-medium text-accent hover:underline">
           {profile.email}
         </a>

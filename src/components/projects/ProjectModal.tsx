@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import { buttonStyles } from "@/components/ui/Button";
 import type { Project } from "@/lib/data/projects";
 import { projectCategoryMap } from "@/lib/data/projects";
+import { publicPath } from "@/lib/site";
 
 export function ProjectModal({
   project,
@@ -90,7 +91,7 @@ export function ProjectModal({
       >
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted sm:aspect-[2/1]">
           <Image
-            src={project.cover}
+            src={publicPath(project.cover)}
             alt={project.coverAlt}
             fill
             priority

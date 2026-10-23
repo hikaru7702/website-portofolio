@@ -90,7 +90,7 @@ Saya fokus pada pengalaman drag-and-drop yang mulus, notifikasi aktivitas, serta
       "Website portofolio interaktif dengan dukungan PWA, mode gelap, dan pengalaman offline.",
     body: `Portofolio pribadi yang dibangun dengan Next.js App Router dan Tailwind CSS. Proyek ini menjadi ruang eksperimen untuk tema, tipografi, animasi, dan pola interaksi yang tetap ringan.
 
-Seluruh halaman dapat diakses secara offline setelah kunjungan pertama melalui service worker. Form kontak dilengkapi validasi ganda, honeypot, dan rate limiting sederhana.`,
+Seluruh halaman dapat diakses secara offline setelah kunjungan pertama melalui service worker. Form kontak memakai validasi klien dan membuka draft email yang sudah terisi.`,
     highlights: [
       "PWA dengan strategi caching per jenis aset",
       "Mode gelap tanpa flicker dan menghormati prefers-color-scheme",

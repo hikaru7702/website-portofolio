@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Download, RefreshCw, WifiOff, X } from "lucide-react";
+import { basePath } from "@/lib/site";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -71,9 +72,10 @@ export function PWAProvider() {
     ) {
       const registerServiceWorker = async () => {
         try {
-          const registration = await navigator.serviceWorker.register("/sw.js", {
-            scope: "/",
-          });
+          const registration = await navigator.serviceWorker.register(
+            `${basePath}/sw.js`,
+            { scope: `${basePath}/` }
+          );
 
           if (registration.waiting && navigator.serviceWorker.controller) {
             setWaitingWorker(registration.waiting);

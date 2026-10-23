@@ -22,11 +22,7 @@ import {
   projects,
 } from "@/lib/data/projects";
 import { profile } from "@/lib/data/profile";
-
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(
-  /\/$/,
-  ""
-);
+import { absoluteUrl, publicPath, siteUrl } from "@/lib/site";
 
 export function generateStaticParams() {
   return projects.map((project) => ({ slug: project.slug }));
@@ -47,15 +43,15 @@ export async function generateMetadata({
   return {
     title: project.title,
     description: project.summary,
-    alternates: { canonical: `/works/${project.slug}` },
+    alternates: { canonical: absoluteUrl(`/works/${project.slug}/`) },
     openGraph: {
       type: "article",
       title: project.title,
       description: project.summary,
-      url: `/works/${project.slug}`,
+      url: absoluteUrl(`/works/${project.slug}/`),
       images: [
         {
-          url: project.cover,
+          url: absoluteUrl(project.cover),
           width: 1200,
           height: 750,
           alt: project.coverAlt,
@@ -66,7 +62,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: project.title,
       description: project.summary,
-      images: [project.cover],
+      images: [absoluteUrl(project.cover)],
     },
   };
 }
@@ -96,7 +92,7 @@ export default async function ProjectPage({
     dateCreated: String(project.year),
     keywords: project.tags.join(", "),
     image: `${siteUrl}${project.cover}`,
-    url: `${siteUrl}/works/${project.slug}`,
+    url: `${siteUrl}/works/${project.slug}/`,
     author: {
       "@type": "Person",
       name: profile.name,
@@ -121,7 +117,7 @@ export default async function ProjectPage({
           <header className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
             <div className="relative aspect-[16/9] max-h-[540px] w-full overflow-hidden rounded-3xl border border-border bg-muted shadow-soft">
               <Image
-                src={project.cover}
+                src={publicPath(project.cover)}
                 alt={project.coverAlt}
                 fill
                 priority

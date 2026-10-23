@@ -1,19 +1,20 @@
-const VERSION = "portfolio-v4";
+const VERSION = "portfolio-v5";
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;
 const IMAGE_CACHE = `${VERSION}-images`;
-const OFFLINE_URL = "/offline";
 const MAX_IMAGE_ENTRIES = 80;
 
+const BASE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, "");
+const OFFLINE_URL = `${BASE_PATH}/offline`;
 const PRECACHE_URLS = [
-  "/",
+  `${BASE_PATH}/`,
   OFFLINE_URL,
-  "/manifest.webmanifest",
-  "/icons/192.png",
-  "/icons/512.png",
-  "/icons/maskable.png",
-  "/icons/apple-touch-icon.png",
-  "/og-image.png",
+  `${BASE_PATH}/manifest.webmanifest`,
+  `${BASE_PATH}/icons/192.png`,
+  `${BASE_PATH}/icons/512.png`,
+  `${BASE_PATH}/icons/maskable.png`,
+  `${BASE_PATH}/icons/apple-touch-icon.png`,
+  `${BASE_PATH}/og-image.png`,
 ];
 
 self.addEventListener("install", (event) => {
@@ -59,7 +60,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith(`${BASE_PATH}/api/`)) return;
 
   if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));
@@ -67,14 +68,14 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (
-    url.pathname.startsWith("/_next/image") ||
+    url.pathname.startsWith(`${BASE_PATH}/_next/image`) ||
     /\.(?:png|jpe?g|webp|avif|gif|svg|ico)$/i.test(url.pathname)
   ) {
     event.respondWith(cacheFirst(request, IMAGE_CACHE, MAX_IMAGE_ENTRIES));
     return;
   }
 
-  if (url.pathname.startsWith("/_next/static/")) {
+  if (url.pathname.startsWith(`${BASE_PATH}/_next/static/`)) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
   }
@@ -105,7 +106,7 @@ async function networkFirst(request) {
     if (offlineResponse) return offlineResponse;
 
     return new Response(
-      "<!doctype html><html lang=\"id\"><meta charset=\"utf-8\"><title>Offline</title><body style=\"font-family:system-ui;padding:2rem;text-align:center\"><h1>Anda sedang offline</h1><p>Halaman ini belum tersimpan. Kembali ke beranda untuk melihat konten yang tersedia.</p><a href=\"/\">Kembali ke beranda</a></body></html>",
+      `<!doctype html><html lang="id"><meta charset="utf-8"><title>Offline</title><body style="font-family:system-ui;padding:2rem;text-align:center"><h1>Anda sedang offline</h1><p>Halaman ini belum tersimpan. Kembali ke beranda untuk melihat konten yang tersedia.</p><a href="${BASE_PATH}/">Kembali ke beranda</a></body></html>`,
       {
         status: 503,
         headers: { "Content-Type": "text/html; charset=utf-8" },

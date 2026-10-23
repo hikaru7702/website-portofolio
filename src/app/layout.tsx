@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { PWAProvider } from "@/components/pwa/PWAProvider";
 import { profile } from "@/lib/data/profile";
+import { absoluteUrl, siteUrl } from "@/lib/site";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,8 +17,6 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   display: "swap",
 });
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -44,28 +43,46 @@ export const metadata: Metadata = {
     "Indonesia",
   ],
   alternates: {
-    canonical: "/",
+    canonical: absoluteUrl("/"),
   },
-  manifest: "/manifest.webmanifest",
+  manifest: absoluteUrl("/manifest.webmanifest"),
   icons: {
     icon: [
-      { url: "/icons/192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/512.png", sizes: "512x512", type: "image/png" },
+      {
+        url: absoluteUrl("/favicon.ico"),
+        type: "image/x-icon",
+        sizes: "any",
+      },
+      {
+        url: absoluteUrl("/icons/192.png"),
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: absoluteUrl("/icons/512.png"),
+        sizes: "512x512",
+        type: "image/png",
+      },
     ],
-    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
-    shortcut: ["/icons/192.png"],
+    apple: [
+      {
+        url: absoluteUrl("/icons/apple-touch-icon.png"),
+        sizes: "180x180",
+      },
+    ],
+    shortcut: [absoluteUrl("/icons/192.png")],
   },
   openGraph: {
     type: "website",
     locale: "id_ID",
-    url: "/",
+    url: absoluteUrl("/"),
     siteName: profile.siteName,
     title: `${profile.name} — ${profile.role}`,
     description:
       "Portofolio interaktif: karya, keahlian, pengalaman, dan cara menghubungi saya.",
     images: [
       {
-        url: "/og-image.png",
+        url: absoluteUrl("/og-image.png"),
         width: 1200,
         height: 630,
         alt: `${profile.name} — ${profile.role}`,
@@ -77,7 +94,7 @@ export const metadata: Metadata = {
     title: `${profile.name} — ${profile.role}`,
     description:
       "Portofolio interaktif: karya, keahlian, pengalaman, dan cara menghubungi saya.",
-    images: ["/og-image.png"],
+    images: [absoluteUrl("/og-image.png")],
   },
   robots: {
     index: true,
@@ -119,7 +136,7 @@ const personJsonLd = {
   name: profile.name,
   jobTitle: profile.role,
   description: profile.tagline,
-  url: siteUrl,
+  url: absoluteUrl("/"),
   email: profile.email,
   address: {
     "@type": "PostalAddress",
