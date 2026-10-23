@@ -1,0 +1,7 @@
+User-Agent: *
+Allow: /website-portofolio/
+Disallow: /website-portofolio/offline
+Disallow: /website-portofolio/api/
+
+Host: https://hikaru7702.github.io
+Sitemap: https://hikaru7702.github.io/website-portofolio/sitemap.xml
